@@ -29,72 +29,10 @@ def StartingBoundsAllNodes(G):
 
 def BoundUnvisitedNodes(BoundsArray, CurrentPath):
 
-    UnvisitedNodes = BoundsArray[~np.in1d(
-        np.arange(1, len(BoundsArray) + 1), CurrentPath)]
+    UnvisitedNodes = BoundsArray[~np.in1d(np.arange(1, len(BoundsArray) + 1), CurrentPath)]
     Total = np.sum(UnvisitedNodes)
 
     return math.ceil(Total / 2)
-
-
-def SmallestEdgeWeight(G, v1, v2):
-    MinEdge = math.inf
-    for _, _, data in G.edges(v1, data=True):
-        CurrentEdgeWeight = data['weight']
-
-        if _ == v2:
-            continue
-        if CurrentEdgeWeight < MinEdge:
-            MinEdge = CurrentEdgeWeight
-
-    return MinEdge
-
-
-def TwoSmallestEdges(G, v):
-    MinEdgeWeight1 = math.inf
-    MinEdgeWeight2 = math.inf
-
-    for _, _, data in G.edges(v, data=True):
-        CurrentEdgeWeight = data['weight']
-
-        if CurrentEdgeWeight < MinEdgeWeight1:
-            MinEdgeWeight2 = MinEdgeWeight1
-            MinEdgeWeight1 = CurrentEdgeWeight
-        elif CurrentEdgeWeight < MinEdgeWeight2:
-            MinEdgeWeight2 = CurrentEdgeWeight
-
-    return MinEdgeWeight1, MinEdgeWeight2
-
-
-def UpdateBoundsAddEdge(BoundsArray, G, v1, v2, CurrentPath):
-    CommonEdgeWeight = G[v1][v2]['weight']
-
-    if v1 == CurrentPath[0]:
-        MinEdgeWeight1 = SmallestEdgeWeight(G, v1, v2)
-    else:
-        index = int(np.where(CurrentPath == v1)[0])
-        v0 = CurrentPath[index-1]
-        MinEdgeWeight1 = G[v0][v1]['weight']
-
-    BoundsArray[v1-1] = MinEdgeWeight1 + CommonEdgeWeight
-
-    MinEdgeWeight2 = SmallestEdgeWeight(G, v2, v1)
-    BoundsArray[v2-1] = MinEdgeWeight2 + CommonEdgeWeight
-
-
-def UpdateBoundsRemoveEdge(BoundsArray, G, v1, v2, CurrentPath):
-    if v1 == CurrentPath[0]:
-        MinEdgeWeight1, MinEdgeWeight2 = TwoSmallestEdges(G, v1)
-        BoundsArray[v1-1] = MinEdgeWeight1+MinEdgeWeight2
-    else:
-        index = int(np.where(CurrentPath == v1)[0])
-        vertex0 = CurrentPath[index-1]
-        MinEdgeWeight1 = G[vertex0][v1]['weight']
-
-        MinEdgeWeight2 = SmallestEdgeWeight(G, v1, vertex0)
-        BoundsArray[v1-1] = MinEdgeWeight1+MinEdgeWeight2
-
-    MinEdgeWeight1, MinEdgeWeight2 = TwoSmallestEdges(G, v2)
-    BoundsArray[v2-1] = MinEdgeWeight1+MinEdgeWeight2
 
 
 def BranchAndBoundRec(G, BoundsArray, CurrentPath, CurrentCost, BestCostSoFar, VisitedNodes, CurrentDepth=0):
@@ -113,18 +51,12 @@ def BranchAndBoundRec(G, BoundsArray, CurrentPath, CurrentCost, BestCostSoFar, V
             PreviousNode = CurrentPath[CurrentDepth - 1]
             NewCost = CurrentCost + G[PreviousNode][v]['weight']
 
-            UpdateBoundsAddEdge(
-                BoundsArray, G, CurrentPath[CurrentDepth - 1], v, CurrentPath)
-
             NewBound = BoundUnvisitedNodes(BoundsArray, CurrentPath)
             if NewCost + NewBound < BestCostSoFar:
-                BestCostSoFar = BranchAndBoundRec(
-                    G, BoundsArray, CurrentPath, NewCost, BestCostSoFar, VisitedNodes, CurrentDepth + 1)
+                BestCostSoFar = BranchAndBoundRec(G, BoundsArray, CurrentPath, NewCost, BestCostSoFar, VisitedNodes, CurrentDepth + 1)
 
             VisitedNodes[v-1] = False
             CurrentPath[CurrentDepth] = 0
-            UpdateBoundsRemoveEdge(
-                BoundsArray, G, CurrentPath[CurrentDepth-1], v, CurrentPath)
 
     return BestCostSoFar
 
