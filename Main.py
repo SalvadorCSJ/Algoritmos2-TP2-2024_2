@@ -2,6 +2,7 @@ import InputProcessor as IP
 import TwiceAroundTheTree as TAT
 import Christofides as CF
 import sys
+import time
 
 def main():
     if len(sys.argv) != 2:
@@ -13,11 +14,17 @@ def main():
     CompleteGraph = IP.CreateCompleteGraph(graph)
     WeightedGraph = IP.CreateWeightedGraph(CompleteGraph)
 
+    start = time.time()
     TATtour, TATcost = TAT.TwiceAroundTheTree(WeightedGraph)
-    print("TAT cost:", TATcost)
+    end = time.time()
+    print("TAT cost: ", TATcost)
+    print("TAT took: ", end - start, "seconds to run")
 
+    start = time.time()
     CFcircuit, CFcost = CF.Christofides(WeightedGraph)
+    end = time.time()
     print("Christofides cost: ", CFcost)
+    print("Christofides took: ", end - start, "seconds to run")
 
 if __name__ == "__main__":
     main()
